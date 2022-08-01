@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'common'
+    'quiz',
+    'common',
+    'rest_framework',
+    "django_filters",
 ]
 
 MIDDLEWARE = [
@@ -68,6 +71,18 @@ TEMPLATES = [
         },
     },
 ]
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+#     'PAGE_SIZE': 10
+# }
 
 WSGI_APPLICATION = 'core.wsgi.application'
 AUTH_USER_MODEL = "common.user"
@@ -128,8 +143,15 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "mediafiles")
 
+# import mimetypes
+#
+# mimetypes.add_type("application/javascript", ".js", True)
+#
+# DEBUG_TOOLBAR_CONFIG = {
+#     "INTERCEPT_REDIRECTS": False,
+# }
 
 try:
-    from .local_settings import *  # noqa
+    from .local_settings.example import *  # noqa
 except ImportError:
     pass # noqa
