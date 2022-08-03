@@ -15,21 +15,15 @@ from .models import *
 # admin.site.register(Question)
 # admin.site.register(QuestionOption)
 admin.site.register(ReportQuestion)
+admin.site.register(UserQuiz)
+admin.site.register(UserQuizAnswer)
 # admin.site.register(Quiz)
 
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = [
+class QuestionInline(admin.TabularInline):
+    model = Question
+    fields = [
         'title',
-        'slug'
-    ]
-
-@admin.register(Quiz)
-class QuizAdmin(admin.ModelAdmin):
-    list_display = [
-        "id",
-        'title',
-        'grade'
+        'type',
     ]
 
 class QuestionOptionInline(admin.TabularInline):
@@ -39,11 +33,23 @@ class QuestionOptionInline(admin.TabularInline):
         'is_correct'
     ]
 
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        'title',
+        'grade'
+    ]
+    inlines = [
+        QuestionInline,
+    ]
+
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     fields = [
         'title',
-        'quiz'
+        'quiz',
+        'type',
     ]
     list_display = [
         'title',
@@ -58,7 +64,14 @@ class QuestionOptionAdmin(admin.ModelAdmin):
     list_display = [
         "title",
         'is_correct',
-        'questions',
+        'question',
+    ]
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = [
+        'title',
+        'slug'
     ]
 
 

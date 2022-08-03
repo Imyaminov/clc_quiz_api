@@ -39,7 +39,7 @@ GRADE = (
 )
 
 
-class Category(BaseModel): # Subject
+class Category(BaseModel):  # Subject
     title = models.CharField(max_length=128)
     slug = models.CharField(max_length=128)
     icon = models.FileField(upload_to="category/")
@@ -65,14 +65,16 @@ class Quiz(BaseModel):
     duration = models.PositiveIntegerField(verbose_name='Quiz duration(sec)')
 
     def __str__(self):
-        return f'{self.title}  {self.category}'
+        return f'{self.title}'
+
+    def count(self):
+        count = Question.objects.filter()
 
 
 class Question(BaseModel):
     quiz = models.ForeignKey(
         Quiz, on_delete=models.CASCADE, related_name='selected_quiz')
-    title = models.TextField(
-        max_length=256)
+    title = models.CharField(max_length=2048)
     type = models.CharField(
         max_length=32, choices=QUESTION_TYPE)
 
@@ -91,11 +93,11 @@ class QuestionOption(models.Model):
     title = models.CharField(max_length=256)
     is_correct = models.BooleanField(default=False)
 
-    questions = models.ForeignKey(
+    question = models.ForeignKey(
         Question, on_delete=models.CASCADE, related_name="options")
 
     def __str__(self):
-        return f'{self.title}  {self.questions}'
+        return f'{self.title}'
 
 
 class ReportQuestion(BaseModel):
@@ -106,20 +108,36 @@ class ReportQuestion(BaseModel):
     additional = models.TextField(blank=True)
 
 
-class StartQuiz(BaseModel):
+class UserQuiz(BaseModel):
+    """Quiz that User has taken"""
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    questions = models.ManyToManyField(Question)
 
-    started_at = models.DateTimeField(auto_now_add=True)
-    finished_at = models.DateTimeField(auto_now = False)
-
+    score = models.PositiveIntegerField(default=0)
     is_finished = models.BooleanField(default=False)
 
+    def update_score(self):
+        UserQuiz.objects.filter(id=self.id).update(
+            score=UserQuizAnswer.objects.filter(is_correct=True, user_answer=self).count())
 
-class QuizAnswerStats(BaseModel):
-    completed_quiz = models.ForeignKey(
-        StartQuiz, on_delete=models.CASCADE, related_name='finished_quiz')
-    rank = models.IntegerField(default=0)
-    score = models.PositiveIntegerField(default=0)
-    is_correct = models.BooleanField(default=False)
+    def create_answers(self):
+        quiz_answers = []
+        for question in self.questions.all().order_by("?"):
+            quiz_answers.append(UserQuizAnswer(
+                user_answer=self, question=question))
+        UserQuizAnswer.objects.bulk_create(quiz_answers)
+
+class UserQuizAnswer(models.Model):
+    """User answer to single question"""
+    user_answer = models.ForeignKey(
+        UserQuiz, on_delete=models.CASCADE, related_name="answer")
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answered_question")
+    response = models.ForeignKey(QuestionOption, on_delete=models.CASCADE, related_name='user_response', null=True)
+    answered = models.BooleanField(default=False)
+
+    @property
+    def is_correct(self):
+        correct_option = QuestionOption.objects.all().filter(question=self.question, is_correct=True)
+        return correct_option == self.response.all()
 

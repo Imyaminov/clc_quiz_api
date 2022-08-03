@@ -1,4 +1,4 @@
-from .models import Category, Question, QuestionOption, Quiz, QuizAnswerStats, ReportQuestion
+from .models import Category, Question, QuestionOption, Quiz, ReportQuestion
 
 from rest_framework import serializers
 
@@ -15,26 +15,30 @@ class QuestionOptionSerializers(serializers.ModelSerializer):
 
 
 class QuestionSerializers(serializers.ModelSerializer):
-    questionoption = QuestionOptionSerializers
+    # quiz = serializers.StringRelatedField()
+    options = QuestionOptionSerializers(many=True, read_only=True)
     class Meta:
         model = Question
-        fields = "__all__"
+        fields = ['title', 'type', 'points', 'time', 'options']
 
 
 class QuizSerializers(serializers.ModelSerializer):
-    # question = QuestionSerializers(many=True)
+    selected_quiz = QuestionSerializers(many=True, read_only=True)
+    category = serializers.StringRelatedField(many=True)
+    created_by = serializers.StringRelatedField()
+
     class Meta:
         model = Quiz
-        fields = ['title', 'created_by', 'img', 'category', 'grade',
-                  'times_played', "likes", 'created_at']
+        fields = ['title', 'category', 'created_by', 'img', 'grade',
+                  'times_played', "likes", 'created_at', 'selected_quiz']
 
 
 
 class HomePageSerializers(serializers.ModelSerializer):
-    # category = CategorySerializers(many=True)
+    category = serializers.StringRelatedField(many=True)
     class Meta:
         model = Quiz
-        fields = ['category', 'title', 'img', 'times_played', 'question_count']
+        fields = ['category', 'title', 'img', 'question_count', 'times_played']
 
 
 
